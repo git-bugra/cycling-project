@@ -24,6 +24,7 @@ class CycloMeter():
         self.sort_ascending = True
 
     def pathAssign(self, path: str):
+        '''Assign path to user selected dir'''
         path = pl.Path(path)
         try:
             df = pd.read_csv(path)
@@ -34,7 +35,7 @@ class CycloMeter():
         return self
     
     def sortValues(self, column):
-        
+        '''Sort columns when clicked'''
         if self.sort_column==column:
             self.sort_ascending=not self.sort_ascending
         else:
@@ -44,14 +45,18 @@ class CycloMeter():
         self.data = self.data.sort_values(by=column, ascending=self.sort_ascending)
     
     def setCondition(self, condition):
+        '''Condition property for filterization'''
         if condition is None:
             self.condition=None
         else:
             self.condition=condition
     
     def filterResults(self, column: str, operator: str, value: float, reset: bool):
+        '''Filter results logic'''
         try:value=float(value)
-        except:return False
+        except:
+            print('Value error, please enter valid characters.')
+            return False
         if reset:
             condition=None
             pass
@@ -75,8 +80,7 @@ class CycloMeter():
         return True
     
     def extractColumn(self, column:str):
-        '''return column
-        mutates self.data obj'''
+        'return column, mutates self.data obj'
         column=column.lower()
         if column in self.data.columns:
             return self.data[f"{column}"]
@@ -84,18 +88,19 @@ class CycloMeter():
             raise KeyError("Column not found.")
 
     def extractMultiColumns(self, column:list):
-        """Takes list with items as column str"""
+        'Takes list with items as column str'
 
         return self.data[column]
 
     def msToKM(self, column:str):
+        'Convert from meter/second to kph'
         col = column.lower()
         if col not in self.data.columns:
             raise KeyError(col)
         self.data = self.data.assign(**{f"{col} kmh": (self.data[col].astype(float) * 3.6).round(2)})
 
     def secsToHour(self, column):
-        '''convert speed format to kmh'''
+        'convert speed format to kmh'
         if column in self.data.columns:
             meter=self.extractColumn(column)
             meter=meter/3600
@@ -111,6 +116,7 @@ class TextRedirector():
         self.index = 0
 
     def write(self,text):
+        'Insert a single char'
         if self.index == 0:
             self.text_widget.configure(state='normal')
             self.text_widget.delete("1.0", "end")
@@ -141,6 +147,7 @@ class EntryField():
         self.label=tk.Label(self.frame, text=self.text)
     
     def packButtonHelper(self):
+        'pack the called entry'
         self.entry.pack(side=tk.RIGHT)
         self.label.pack(side=tk.LEFT)
         self.frame.pack(side="top")
@@ -151,10 +158,12 @@ class ButtonField():
         self.entry=tk.Button(self.frame, text=text)
     
     def packButtonHelper(self):
+        'pack the called button'
         self.entry.pack()
         self.frame.pack(side="top")
 
 def loadFile():
+    'open .csv file and append items as valid columns'
     items=['activity id', 'activity date', 'moving time/h', 'distance', 'max heart rate', 'average heart rate', 'average speed kmh', 'max speed kmh', 'average watts', 'calories'] 
     path=filedialog.askopenfilename()
 
@@ -167,7 +176,7 @@ def loadFile():
     return cyclingObj
 
 def displayData(cyclingObj:CycloMeter):
-    
+    'copying current data, and displaying based on the filterization'
     if cyclingObj.condition is not None: #If data is filtered, adjust the view.
         display_data:pd.Dataframe=cyclingObj.data[cyclingObj.condition]
     else: #Unfiltered, raw data copy.
@@ -179,10 +188,11 @@ def displayHelp():
     print(text)
 
 def updateStatusBar(status_bar:tk.Text):
+    'reroute sys print statements to TextRedirector object'
     sys.stdout=TextRedirector(status_bar)
 
-def treeview_init(tree_view:Treeview, display_data, pandasRows, cyclingObj:CycloMeter):
-    '''Adjust, insert and clear                                             '''
+def treeview_init(tree_view:Treeview, display_data, pandasGenerator, cyclingObj:CycloMeter):
+    '''Adjust, insert and clear'''
 
     for t in tree_view.get_children(): tree_view.delete(t)
 
@@ -193,27 +203,28 @@ def treeview_init(tree_view:Treeview, display_data, pandasRows, cyclingObj:Cyclo
         tree_view.heading(i, text=i, command=lambda col=i: (cyclingObj.sortValues(col), insertTable(tree_view, cyclingObj))) 
         tree_view.column(i, width=180) #column sorting
     
-    for index, value in pandasRows: #Iterating through pandasRows
+    for index, value in pandasGenerator: #Iterating through panda rows
         raw_values=value.values #Series obj (bool T/F) to raw values
         tree_view.insert('','end',values=raw_values.tolist()) #''(start) to end insertion of columns not records
     print(f"Table insertion is complete!") #debugging needs removed on scaffolding
 
 def insertTable(tree_view, cyclingObj:CycloMeter):
-
+    'insert table with filtered or unfiltered results packed, and initialize treeView.'
     display_data=displayData(cyclingObj)
     tree_view['columns']=list(display_data.columns) #update tree_view obj
     tree_view.column('#0', width=0, stretch=False)
     pandasRows=display_data.iterrows() #iterate dataframe records and get Series
     treeview_init(tree_view, display_data, pandasRows, cyclingObj)
 
-def retrieveEntry(colmn:tk.Entry,op:tk.Entry,setVal:tk.Entry, cyclingObj:CycloMeter, reset=False):
-    '''Return input of textBox'''
-    colmn=colmn.get()
+def retrieveEntry(column_name:tk.Entry,op:tk.Entry,setVal:tk.Entry, cyclingObj:CycloMeter, reset=False):
+    '''return input of textBox'''
+    column_name=column_name.get()
     operator=op.get()
     val=setVal.get()
-    cyclingObj.filterResults(colmn,operator,val, reset)
+    cyclingObj.filterResults(column_name,operator,val, reset)
     
 def packTextButtonHelper(window):
+    'user status bar packing'
     status_bar_frame=tk.Frame(window)
     status_bar=tk.Text(status_bar_frame, state='disabled', height=3, width=57)
     return status_bar, status_bar_frame
@@ -229,6 +240,7 @@ def initEntryBoxes(window, label_names:list):
     return items
 
 def initStatusBar(window):
+    'user status bar initialization'
     status_bar_tuple=packTextButtonHelper(window)
     updateStatusBar(status_bar_tuple[0])
     displayHelp()
@@ -266,7 +278,7 @@ def initButtonsConfig(tree_view, input_boxes:list, window):
     return button_config
 
 def initButtons(button_config):
-
+    'pack buttons and the frames in applicable groups'
     for config in button_config:
         if config["type"] == "single":
             button=tk.Button(config["parent"], 
@@ -283,6 +295,7 @@ def initButtons(button_config):
             frame_filter.pack()
 
 def applyStyle(window:tk.Tk):
+    'GUI style application via nested dicts'
     style=ttk.Style(master=window)
     window.option_add('*Text.font', ('Segoe UI', 12))
     style.theme_use('clam')
@@ -345,7 +358,7 @@ def programInitialize():
     
     status_bar, status_bar_frame=initStatusBar(window)
     tree_view.pack()
-    initButtons(button_config)
+    initButtons(button_config) #packs clickables
     for i in input_boxes:i.packButtonHelper()
     for i in status_bar_frame,status_bar: i.pack()
     
@@ -354,26 +367,13 @@ def programInitialize():
 if __name__ == "__main__":
     programInitialize()
     
-    """
-    STATUS: 
-        Loading columns, data works
-        Filtering works
-        Interface is a bit better
-        
-    TODO:
+    '''TODO:
         -Do .exe
         -Filterization is single dimensional, increase it for multiple columns and filterizations
         -Expand filterization errors
         
+    Function readability and description:
 
-    Current:
-        Peformance, readability, dict configuration:
-
-            -Button for removing filterization without explicit clear lines,
-            -Add help line display at the start of the program,
-            -Add refactored versions of functions,
-            -Add descriptions to callables,
-            -Add better configuration,
-            -Fix imperative programming.
-
-    """
+        -Add decription for majority of the functions, methods and objects,
+        -Add small logic fixes.
+    '''
