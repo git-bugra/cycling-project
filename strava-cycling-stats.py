@@ -215,7 +215,6 @@ def treeviewInsertValues(tree_view:Treeview,pandasGenerator):
     for index, value in pandasGenerator: #Iterating through panda rows
         raw_values=value.values #Series obj (bool T/F) to raw values
         tree_view.insert('','end',values=raw_values.tolist()) #''(start) to end insertion of columns not records
-    print(f"Table insertion is complete!") #debugging needs removed on scaffolding
 
 def treeviewCopyFeature(tree_view:Treeview):
     '''Add copy feature via Ctrl+C to treeview rows'''
@@ -277,7 +276,7 @@ def packTextButtonHelper(window):
 def iconAdder(window:tk.Tk):
     '''Adds icon to tk object'''
     script_dir=pl.Path(__file__).parent
-    icon_path=script_dir / "ico" / "helmet.ico"
+    icon_path=script_dir / "imgs" / "helmet.ico"
     window.iconbitmap(icon_path)
 
 def initEntryBoxes(window, label_names:list):
