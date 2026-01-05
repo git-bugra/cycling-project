@@ -1,4 +1,4 @@
-Strava statistics reader app for cycling. It visualizes similar to Excel but more concise without excessive data like "Sun Set Time" or "Temperature".
+Strava statistics reading app for cycling. It visualizes similar to Excel but more concise without excessive data like "Sun Set Time" or "Temperature". Program is originally aimed at for cycling stats, though it will load any Strava downloaded .csv file.
 
 INSTRUCTIONS:
 
