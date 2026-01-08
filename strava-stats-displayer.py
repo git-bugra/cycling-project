@@ -1,10 +1,14 @@
 import pandas as pd
 import sys
+import ctypes
 import pathlib as pl
 import tkinter as tk
 from tkinter import filedialog
 from tkinter.ttk import Treeview
 from tkinter import ttk
+
+app_id = 'Strava Stats Displayer'
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
 
 class CycloMeter():
     '''Object that reads Strava CSV file. Due to Strava using meter/per second convention,
