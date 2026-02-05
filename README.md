@@ -1,4 +1,4 @@
-Strava statistics reading app. App is made for cycling in mind but does work for other activities, though vital stats may not display without modifications. It visualizes similar to Excel but more concise without excessive data like "Sun Set Time" or "Temperature".
+Strava app for showing your past rides in Excel-like cleaned format. App is made for cycling in mind but does work for other activities, though vital stats may not display without modifications.
 
 INSTRUCTIONS:
 
